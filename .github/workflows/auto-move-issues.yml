@@ -14,18 +14,18 @@ jobs:
     steps:
       - name: Move issue to "In Progress" when assigned
         if: github.event.action == 'assigned'
-        run: gh project item update <PROJECT_ID> --id ${{ github.event.issue.node_id }} --status "In Progress"
+        run: gh project item update <2> --id ${{ github.event.issue.node_id }} --status "In Progress"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move issue to "Review" when PR is opened
         if: github.event.action == 'opened' && github.event_name == 'pull_request'
-        run: gh project item update <PROJECT_ID> --id ${{ github.event.pull_request.node_id }} --status "In Review"
+        run: gh project item update <2> --id ${{ github.event.pull_request.node_id }} --status "In Review"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move issue to "Done" when PR is merged
         if: github.event.action == 'closed' && github.event_name == 'pull_request'
-        run: gh project item update <PROJECT_ID> --id ${{ github.event.pull_request.node_id }} --status "Done"
+        run: gh project item update <2> --id ${{ github.event.pull_request.node_id }} --status "Done"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
