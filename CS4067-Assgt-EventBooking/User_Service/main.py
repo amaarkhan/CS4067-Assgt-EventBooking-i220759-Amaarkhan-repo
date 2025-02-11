@@ -83,7 +83,6 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
 
 
-# Login User & Return JWT Token
 @app.post("/users/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
@@ -95,6 +94,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
     logging.info(f"User logged in: {user.email}")
     return {"access_token": token, "token_type": "bearer"}
+
 
 
 
@@ -124,5 +124,3 @@ def get_user(id: int, token: str = Depends(oauth2_scheme), db: Session = Depends
     return {"id": user.id, "username": user.username, "email": user.email}
 
 
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWFhcjJAZXhhbXBsZS5jb20ifQ.2MJeLMlps4XeF5m4D3iAc6aN5c06tzcCKEJvCsiv7GU
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWFhcjFAZXhhbXBsZS5jb20ifQ.GJkqCZA4ULSzLZMHBLEChHDSTR7eU1n6LSQbwyCSNJA

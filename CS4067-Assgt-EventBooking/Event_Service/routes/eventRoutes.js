@@ -1,7 +1,6 @@
 const express = require("express");
 const Event = require("../models/event.js");
 
-
 const router = express.Router();
 
 // ✅ Create a New Event (Admins Only)
