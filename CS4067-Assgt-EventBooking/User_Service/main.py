@@ -7,6 +7,10 @@ from database import Base, engine, get_db
 import os
 from dotenv import load_dotenv
 import logging
+from fastapi.security import OAuth2PasswordBearer
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 # Load environment variables
 load_dotenv()
@@ -47,22 +51,37 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-# Register User
+
 @app.post("/users/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(username=user.username, email=user.email, password=hashed_password)
-
     try:
+        # ✅ Check if the user already exists
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User already exists")
+
+        # ✅ Hash the password
+        hashed_password = pwd_context.hash(user.password)
+        db_user = User(username=user.username, email=user.email, password=hashed_password)
+
+        # ✅ Store user in the database
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        logging.info(f"User registered: {user.email}")
+
+        print("✅ User Registered:", db_user.email)  # Debugging log
         return {"message": "User registered successfully"}
-    except:
+    
+    except HTTPException as e:
+        raise e  # ✅ Properly return the "User already exists" error
+    
+    except Exception as e:
         db.rollback()
-        logging.error(f"User registration failed: {user.email}")
-        raise HTTPException(status_code=400, detail="User already exists")
+        print("❌ Error Registering User:", str(e))  # Debugging log
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+
+
 
 # Login User & Return JWT Token
 @app.post("/users/login")
@@ -77,11 +96,33 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     logging.info(f"User logged in: {user.email}")
     return {"access_token": token, "token_type": "bearer"}
 
-# Get User Profile (Requires Authentication)
+
+
+# Function to Verify JWT Token
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return email
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
 @app.get("/users/{id}")
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == id).first()
-    if not user:
-        logging.warning(f"User not found: ID {id}")
-        raise HTTPException(status_code=404, detail="User not found")
+def get_user(id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    email = verify_token(token)  # ✅ Get email from JWT token
+
+    # ✅ Find the user based on the token email
+    user = db.query(User).filter(User.email == email).first()
+    
+    # ✅ Ensure the user can only access their own data
+    if not user or user.id != id:
+        raise HTTPException(status_code=403, detail="You are not authorized to view this user")
+
     return {"id": user.id, "username": user.username, "email": user.email}
+
+
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWFhcjJAZXhhbXBsZS5jb20ifQ.2MJeLMlps4XeF5m4D3iAc6aN5c06tzcCKEJvCsiv7GU
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWFhcjFAZXhhbXBsZS5jb20ifQ.GJkqCZA4ULSzLZMHBLEChHDSTR7eU1n6LSQbwyCSNJA

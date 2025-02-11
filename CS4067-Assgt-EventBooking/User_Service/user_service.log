@@ -1,0 +1,11 @@
+2025-02-11 08:25:09,353 - ERROR - User registration failed: test@example.com
+2025-02-11 08:25:21,244 - ERROR - User registration failed: test@example1.com
+2025-02-11 08:25:28,462 - ERROR - User registration failed: test@example1.com
+2025-02-11 08:26:39,631 - ERROR - User registration failed: test@example1.com
+2025-02-11 08:26:51,046 - ERROR - User registration failed: test2@example.com
+2025-02-11 08:49:30,420 - WARNING - Invalid login attempt: new@example.com
+2025-02-11 08:49:41,637 - WARNING - Invalid login attempt: amaar1@example.com
+2025-02-11 08:50:07,065 - WARNING - Invalid login attempt: amaar2@example.com
+2025-02-11 08:50:35,901 - INFO - User logged in: amaar2@example.com
+2025-02-11 09:04:40,834 - INFO - User logged in: amaar2@example.com
+2025-02-11 09:05:15,538 - INFO - User logged in: amaar1@example.com
