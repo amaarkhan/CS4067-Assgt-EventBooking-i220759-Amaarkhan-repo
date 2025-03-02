@@ -1,9 +1,12 @@
 # CS4067-Assgt-EventBooking-i220759-Amaarkhan-repo
 # Event Booking System
+#Amaar khan 22i-0759
+#haider bukhari 22i-0980
 
 A web-based event booking system that allows users to browse, book, and manage events. The project follows a microservices architecture with separate services for users, events, and bookings.
 
 ---
+
 
 ## 📌 Features
 
