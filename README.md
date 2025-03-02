@@ -56,6 +56,13 @@ The system consists of three main services:
   "password": "securepassword"
 }
 
+Response:
+
+{
+  "message": "User registered successfully!",
+  "userId": "unique_user_id"
+}
+
 🟢 User Login
 
 POST /api/users/login
@@ -65,6 +72,18 @@ Request:
   "email": "johndoe@example.com",
   "password": "securepassword"
 }
+
+Response:
+
+{
+  "token": "jwt_token_here",
+  "user": {
+    "id": "unique_user_id",
+    "username": "johndoe",
+    "email": "johndoe@example.com"
+  }
+}
+
 Event Service
 🔵 Create a New Event
 
@@ -78,6 +97,14 @@ Request:
   "location": "New York",
   "availableSeats": 100
 }
+
+Response:
+
+{
+  "message": "Event created successfully!",
+  "eventId": "unique_event_id"
+}
+
 🔵 Retrieve All Events
 
 GET /api/events
@@ -93,6 +120,7 @@ Response:
     "availableSeats": 100
   }
 ]
+
 Booking Service
 🔴 Book an Event
 
@@ -103,6 +131,14 @@ Request:
   "userId": "unique_user_id",
   "eventId": "unique_event_id"
 }
+
+Response:
+
+{
+  "message": "Booking confirmed!",
+  "bookingId": "unique_booking_id"
+}
+
 🔴 Retrieve User Bookings
 
 GET /api/bookings/user/:userId
@@ -120,6 +156,8 @@ Response:
     "status": "confirmed"
   }
 ]
+
+
 
 🚀 Setup Guide
 Prerequisites
