@@ -81,8 +81,6 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Registration failed")
 
 
-
-
 @app.post("/users/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
@@ -94,7 +92,6 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
     logging.info(f"User logged in: {user.email}")
     return {"access_token": token, "token_type": "bearer"}
-
 
 
 
@@ -112,20 +109,13 @@ def verify_token(token: str):
 
 
 @app.get("/users/{id}")
-def get_user(id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    email = verify_token(token)  # ✅ Get email from JWT token
-
-    # ✅ Find the user based on the token email
-    user = db.query(User).filter(User.email == email).first()
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == id).first()
     
-    # ✅ Ensure the user can only access their own data
-    if not user or user.id != id:
-        raise HTTPException(status_code=403, detail="You are not authorized to view this user")
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
     return {"id": user.id, "username": user.username, "email": user.email}
-
-
-
 
 
 # start command uvicorn main:app --host 0.0.0.0 --port 8000 --reload
