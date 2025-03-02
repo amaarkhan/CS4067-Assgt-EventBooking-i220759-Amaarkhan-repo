@@ -90,7 +90,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         logging.warning(f"Invalid login attempt: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    token_data = {"sub": db_user.email}
+    token_data = {"sub": db_user.email, "id": db_user.id}
     token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
     logging.info(f"User logged in: {user.email}")
     return {"access_token": token, "token_type": "bearer"}
@@ -124,3 +124,7 @@ def get_user(id: int, token: str = Depends(oauth2_scheme), db: Session = Depends
     return {"id": user.id, "username": user.username, "email": user.email}
 
 
+
+
+
+# start command uvicorn main:app --host 0.0.0.0 --port 8000 --reload
