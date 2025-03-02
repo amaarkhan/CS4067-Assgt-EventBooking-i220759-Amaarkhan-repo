@@ -6,7 +6,9 @@ from database import Base, engine, get_db
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 import os
-import requests  # ✅ Import requests to make API calls
+import requests
+import pika  # ✅ Import RabbitMQ client
+import json
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -14,6 +16,10 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 EVENT_SERVICE_URL = "http://127.0.0.1:4000/events/"  # ✅ Event Service URL
+
+# RabbitMQ settings
+RABBITMQ_HOST = "localhost"
+QUEUE_NAME = "booking_queue"
 
 # Initialize FastAPI
 app = FastAPI()
@@ -49,13 +55,43 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # ✅ Function to Check if Event Exists
-def check_event_exists(event_id: int):
+def check_event_exists(event_id: str):
     response = requests.get(f"{EVENT_SERVICE_URL}{event_id}")
     if response.status_code != 200:
         raise HTTPException(status_code=404, detail="Event not found or unavailable")
     return response.json()
 
-# ✅ POST Endpoint to Create a Booking
+# ✅ Function to Publish Message to RabbitMQ
+def publish_booking_message(user_id: int, ammount: str, no_of_ticket: str):
+    try:
+        # Establish connection
+        connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_HOST))
+        channel = connection.channel()
+
+        # Declare queue
+        channel.queue_declare(queue=QUEUE_NAME, durable=True)
+
+        # Create message payload
+        message = json.dumps({
+            "user_id": user_id,
+            "ammount": ammount,
+            "no_of_ticket": no_of_ticket
+        })
+
+        # Publish message
+        channel.basic_publish(
+            exchange="",
+            routing_key=QUEUE_NAME,
+            body=message
+        )
+
+        # Close connection
+        connection.close()
+
+        print(f"📤 Sent booking message: {message}")
+    except Exception as e:
+        print(f"❌ Error publishing to RabbitMQ: {e}")
+
 @app.post("/bookings/")
 def create_booking(
     booking: BookingCreate,
@@ -77,6 +113,9 @@ def create_booking(
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
+
+    # ✅ Send message to RabbitMQ
+    publish_booking_message(user_id, booking.amount, booking.num_tickets)
 
     return {"message": "Booking successful", "booking_id": new_booking.id, "event": event_data}
 

@@ -110,6 +110,7 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+
 @app.get("/users/{id}")
 def get_user(id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     email = verify_token(token)  # ✅ Get email from JWT token
